@@ -1,6 +1,7 @@
 require 'sinatra'
 require 'json'
 require 'cosm-rb'
+require 'uri'
 
 enable :logging
 
@@ -11,10 +12,8 @@ end
 post '/notifications' do
   content_type :json
 
-  pp 'baz'
-  pp request.body
+  data = JSON.parse(URI.unescape(request.body.read))
 
-  data = JSON.parse(request.body.read)
 
   API_KEY = ENV["cosm_api_key"]
   FEED_ID = ENV["cosm_feed_id"]
