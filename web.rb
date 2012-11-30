@@ -6,6 +6,6 @@ get '/' do
 end
 
 post '/notifications' do
-	data = JSON.parse(params)
-	"#{data.inspect}"
+  data = JSON.parse(params)
+  p params
 end
