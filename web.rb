@@ -19,7 +19,7 @@ post '/notifications' do
   FEED_ID = ENV["cosm_feed_id"]
 
   repository = data["repository"]["name"]
-  status = data["status_message"] == "Passed" ? 1 : 0
+  status = data["status"]
 
   { repository.to_sym => status }.each_pair do |key,value|
       datapoint = Cosm::Datapoint.new(:at => Time.now, :value => value)
