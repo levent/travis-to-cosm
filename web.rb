@@ -10,7 +10,6 @@ end
 
 post '/notifications' do
   content_type :json
-  logger.info("here: #{request.body.inspect}")
   data = JSON.parse(request.body.read)
 
   API_KEY = ENV["cosm_api_key"]
