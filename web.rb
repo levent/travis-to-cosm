@@ -21,6 +21,4 @@ post '/notifications' do
         :headers => {"X-ApiKey" => API_KEY},
         :body => {:datapoints => [datapoint]}.to_json)
   end
-
-
 end
