@@ -1,10 +1,11 @@
 language: ruby
 rvm:
   - 1.8.7
+
 notifications:
   webhooks:
     urls:
       - http://hidden-crag-7343.herokuapp.com/notifications
-    on_success: [always|never|change] # default: always
-    on_failure: [always|never|change] # default: always
-    on_start: [true|false] # default: false
+    on_success: always
+    on_failure: always
+    on_start: false
