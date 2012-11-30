@@ -2,13 +2,15 @@ require 'sinatra'
 require 'json'
 require 'cosm-rb'
 
+enable :logging
+
 get '/' do
   "Travis to Cosm"
 end
 
 post '/notifications' do
   content_type :json
-  Logger.write("here: #{request.body.inspect}")
+  logger.info("here: #{request.body.inspect}")
   data = JSON.parse(request.body.read)
 
   API_KEY = ENV["cosm_api_key"]
