@@ -6,6 +6,6 @@ get '/' do
 end
 
 post '/notifications' do
-  data = JSON.parse(params)
-  p params
+	content_type :json
+  data = JSON.parse(request.body.read)
 end
