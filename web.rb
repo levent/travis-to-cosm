@@ -10,7 +10,11 @@ end
 
 post '/notifications' do
   content_type :json
-  data = params
+
+  pp 'baz'
+  pp request.body
+
+  data = JSON.parse(request.body.read)
 
   API_KEY = ENV["cosm_api_key"]
   FEED_ID = ENV["cosm_feed_id"]
