@@ -7,7 +7,10 @@ get '/' do
 end
 
 post '/notifications' do
-  data = JSON.parse(request.body.read)
+  content_type :json
+  puts "==============="
+  puts request.body.inspect
+  data = JSON.parse(request.body)
 
   API_KEY = ENV["cosm_api_key"]
   FEED_ID = ENV["cosm_feed_id"]
