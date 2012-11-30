@@ -9,9 +9,8 @@ end
 post '/notifications' do
   data = JSON.parse(request.body.read)
 
-  config = YAML.load_file('config/cosm.yml')
-  API_KEY = config["api_key"]
-  FEED_ID = config["feed_id"]
+  API_KEY = ENV["cosm_api_key"]
+  FEED_ID = ENV["cosm_feed_id"]
 
   repository = data["repository"]["name"]
   status = data["status_message"] == "Passed" ? 1 : 0
