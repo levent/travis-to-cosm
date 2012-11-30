@@ -12,8 +12,6 @@ post '/notifications' do
   content_type :json
   puts "+++++++++++++++++++++++++"
   puts request.body.inspect
-  puts "HERE"
-  puts request.body.read.inspect
 
   data = JSON.parse(request.body.read)
 
