@@ -20,7 +20,7 @@ post '/notifications' do
   repository = data["repository"]["name"]
   status = data["status"]
 
-  { repository.to_sym => status }.each_pair do |key,value|
+  { repository.to_sym => status, :builds => status }.each_pair do |key,value|
       datastream = Cosm::Datastream.new(:id => key, :feed_id => FEED_ID)
       datastream.datapoints = [Cosm::Datapoint.new(:at => Time.now, :value => value)]
       feed = Cosm::Feed.new(:id => FEED_ID)
