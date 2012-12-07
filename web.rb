@@ -24,9 +24,10 @@ post '/notifications' do
   { repository.to_sym => status }.each_pair do |key,value|
       datastream = Cosm::Datastream.new(:id => key, :feed_id => FEED_ID)
       datastream.datapoints = [Cosm::Datapoint.new(:at => Time.now, :value => value)]
-
-      Cosm::Client.post("/v2/feeds/#{FEED_ID}/datastreams",
-        :headers => {"X-ApiKey" => API_KEY},
-        :body => {:datastreams => [datastream]}.to_json)
+      feed = Cosm::Feed.new(:id => FEED_ID)
+      feed.datastreams = [datastream]
+      Cosm::Client.put("/v2/feeds/#{FEED_ID}",
+               :headers => {"X-ApiKey" => API_KEY},
+               :body => feed.to_json)
   end
 end
