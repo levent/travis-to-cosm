@@ -12,7 +12,7 @@ class MyAppTest < Test::Unit::TestCase
 	end
 
 	def test_root_returns_travis_to_cosm
- 		get '/test'
+ 		get '/'
  		assert last_response.ok?
  		assert_equal 'Travis to Cosm', last_response.body
 	end
