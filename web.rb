@@ -12,7 +12,7 @@ end
 post '/notifications' do
   content_type :json
 
-  data = JSON.parse(URI.unescape(request.body.read).gub('payload=', ''))
+  data = JSON.parse(URI.unescape(request.body.read).gsub('payload=', ''))
 
   API_KEY = ENV["cosm_api_key"]
   FEED_ID = ENV["cosm_feed_id"]
