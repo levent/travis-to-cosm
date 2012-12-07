@@ -25,7 +25,7 @@ post '/notifications' do
       datastream = Cosm::Datastream.new(:id => key, :feed_id => FEED_ID)
       datastream.datapoints = [Cosm::Datapoint.new(:at => Time.now, :value => value)]
 
-      Cosm::Client.post("/v2/feeds/#{FEED_ID}/datastreams/#{key}",
+      Cosm::Client.post("/v2/feeds/#{FEED_ID}/datastreams",
         :headers => {"X-ApiKey" => API_KEY},
         :body => {:datastreams => [datastream]}.to_json)
   end
