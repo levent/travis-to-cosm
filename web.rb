@@ -14,8 +14,6 @@ post '/notifications' do
 
   data = JSON.parse(URI.unescape(request.body.read).gsub('payload=', ''))
 
-  puts data.inspect
-
   API_KEY = ENV["cosm_api_key"]
   FEED_ID = ENV["cosm_feed_id"]
 
