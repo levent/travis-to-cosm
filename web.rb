@@ -19,11 +19,19 @@ post '/notifications' do
 
   repository = data["repository"]["name"]
   status = data["status"]
+  feed = Cosm::Feed.new(:id => FEED_ID)
+  overall_status = 'R'
 
-  { repository.to_sym => status, :builds => status }.each_pair do |key,value|
+  response = Cosm::Client.get("/v2/feeds/#{FEED_ID}", :headers => {"X-ApiKey" => API_KEY})
+
+  if response
+    current_datastreams = JSON.parse(response.body)["datastreams"]
+    overall_status = current_datastreams.all? {|c| c["current_value"] == "0"} ? "G" : "R"
+  end
+
+  { repository.to_sym => status, :builds => overall_status }.each_pair do |key,value|
       datastream = Cosm::Datastream.new(:id => key, :feed_id => FEED_ID)
       datastream.datapoints = [Cosm::Datapoint.new(:at => Time.now, :value => value)]
-      feed = Cosm::Feed.new(:id => FEED_ID)
       feed.datastreams = [datastream]
       Cosm::Client.put("/v2/feeds/#{FEED_ID}",
                :headers => {"X-ApiKey" => API_KEY},
