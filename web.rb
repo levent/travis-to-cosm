@@ -25,7 +25,7 @@ post '/notifications' do
   response = Cosm::Client.get("/v2/feeds/#{FEED_ID}", :headers => {"X-ApiKey" => API_KEY})
 
   if response
-    current_datastreams = JSON.parse(response.body)["datastreams"]
+    current_datastreams = JSON.parse(response.body)["datastreams"].delete_if{ |c| c["id"] == 'builds'}
     overall_status = current_datastreams.all? {|c| c["current_value"] == "0"} ? "G" : "R"
   end
 
