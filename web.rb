@@ -26,7 +26,7 @@ post '/notifications' do
 
   if response
     current_datastreams = JSON.parse(response.body)["datastreams"].delete_if{ |c| c["id"] == 'rag'}
-    overall_status = current_datastreams.all? {|c| c["current_value"] == "0"} ? "G" : "R"
+    overall_status = current_datastreams.merge({"id" => respository, "current_value" => status}).all? {|c| c["current_value"] == "0"} ? "G" : "R"
   end
 
   { repository.to_sym => status, :rag => overall_status }.each_pair do |key,value|
