@@ -22,14 +22,23 @@ post '/notifications' do
   feed = Cosm::Feed.new(:id => FEED_ID)
   overall_status = 'R'
 
+  { repository.to_sym => status }.each_pair do |key,value|
+      datastream = Cosm::Datastream.new(:id => key, :feed_id => FEED_ID)
+      datastream.datapoints = [Cosm::Datapoint.new(:at => Time.now, :value => value)]
+      feed.datastreams = [datastream]
+      Cosm::Client.put("/v2/feeds/#{FEED_ID}",
+               :headers => {"X-ApiKey" => API_KEY},
+               :body => feed.to_json)
+  end
+
   response = Cosm::Client.get("/v2/feeds/#{FEED_ID}", :headers => {"X-ApiKey" => API_KEY})
 
   if response
-    current_datastreams = JSON.parse(response.body)["datastreams"].delete_if{ |c| c["id"] == 'rag' || c["id"] == repository}
-    overall_status = current_datastreams.push({"id" => repository, "current_value" => status}).all? {|c| c["current_value"] == "0"} ? "G" : "R"
+    current_datastreams = JSON.parse(response.body)["datastreams"].delete_if{ |c| c["id"] == 'rag'}
+    overall_status = current_datastreams.all? {|c| c["current_value"] == "0"} ? "G" : "R"
   end
 
-  { repository.to_sym => status, :rag => overall_status }.each_pair do |key,value|
+  { :rag => overall_status }.each_pair do |key,value|
       datastream = Cosm::Datastream.new(:id => key, :feed_id => FEED_ID)
       datastream.datapoints = [Cosm::Datapoint.new(:at => Time.now, :value => value)]
       feed.datastreams = [datastream]
