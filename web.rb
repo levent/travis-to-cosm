@@ -25,8 +25,8 @@ post '/notifications' do
   response = Cosm::Client.get("/v2/feeds/#{FEED_ID}", :headers => {"X-ApiKey" => API_KEY})
 
   if response
-    current_datastreams = JSON.parse(response.body)["datastreams"].delete_if{ |c| c["id"] == 'rag'}
-    overall_status = current_datastreams.merge({"id" => repository, "current_value" => status}).all? {|c| c["current_value"] == "0"} ? "G" : "R"
+    current_datastreams = JSON.parse(response.body)["datastreams"].delete_if{ |c| c["id"] == 'rag' || c["id"] == repository}
+    overall_status = current_datastreams.push({"id" => repository, "current_value" => status}).all? {|c| c["current_value"] == "0"} ? "G" : "R"
   end
 
   { repository.to_sym => status, :rag => overall_status }.each_pair do |key,value|
