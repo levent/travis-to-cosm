@@ -24,6 +24,7 @@ post '/notifications' do
 
   repository = data["repository"]["name"]
   status = data["status"]
+  status_message = data["status_message"].to_s.downcase
 
   return unless ["develop", "master"].include?(data["branch"])
 
@@ -41,7 +42,9 @@ post '/notifications' do
 
   response = Cosm::Client.get("/v2/feeds/#{FEED_ID}", :headers => {"X-ApiKey" => API_KEY})
 
-  if response
+  if status_message == "pending"
+    overall_status = "A"
+  elsif response
     current_datastreams = JSON.parse(response.body)["datastreams"].delete_if{ |c| c["id"] == 'rag'}
     overall_status = current_datastreams.all? {|c| c["current_value"] == "0"} ? "G" : "R"
   end
