@@ -31,12 +31,15 @@ post '/notifications' do
   feed = Cosm::Feed.new(:id => FEED_ID)
   overall_status = 'R'
 
-  datastream = Cosm::Datastream.new(:id => repository, :feed_id => FEED_ID)
-  datastream.datapoints = [Cosm::Datapoint.new(:at => Time.now, :value => status)]
-  feed.datastreams = [datastream]
-  Cosm::Client.put("/v2/feeds/#{FEED_ID}",
-                   :headers => {"X-ApiKey" => API_KEY},
-                   :body => feed.to_json)
+  # Don't update the repository's datastream if it is pending (running)
+  if status_message != 'pending'
+    datastream = Cosm::Datastream.new(:id => repository, :feed_id => FEED_ID)
+    datastream.datapoints = [Cosm::Datapoint.new(:at => Time.now, :value => status)]
+    feed.datastreams = [datastream]
+    Cosm::Client.put("/v2/feeds/#{FEED_ID}",
+                     :headers => {"X-ApiKey" => API_KEY},
+                       :body => feed.to_json)
+  end
 
   response = Cosm::Client.get("/v2/feeds/#{FEED_ID}", :headers => {"X-ApiKey" => API_KEY})
 
@@ -47,6 +50,7 @@ post '/notifications' do
     overall_status = current_datastreams.all? {|c| c["current_value"] == "0"} ? "G" : "R"
   end
 
+  # Update Red, Amber, Green datastream for office traffic light
   datastream = Cosm::Datastream.new(:id => 'rag', :feed_id => FEED_ID)
   datastream.datapoints = [Cosm::Datapoint.new(:at => Time.now, :value => overall_status)]
   feed.datastreams = [datastream]
