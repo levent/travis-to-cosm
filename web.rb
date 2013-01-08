@@ -24,6 +24,9 @@ post '/notifications' do
 
   repository = data["repository"]["name"]
   status = data["status"]
+
+  return unless ["develop", "master"].include?(data["branch"])
+
   feed = Cosm::Feed.new(:id => FEED_ID)
   overall_status = 'R'
 
