@@ -23,23 +23,22 @@ post '/notifications' do
   FEED_ID = ENV["cosm_feed_id"]
 
   repository = data["repository"]["name"]
-  status = data["status"]
   status_message = data["status_message"].to_s.downcase
+
+  # Travis treats pending (running) as 1. We want to differentiate from failed.
+  status = status_message == 'pending' ? "2" : data["status"]
 
   return unless ["develop", "master"].include?(data["branch"])
 
   feed = Cosm::Feed.new(:id => FEED_ID)
   overall_status = 'R'
 
-  # Don't update the repository's datastream if it is pending (running)
-  if status_message != 'pending'
-    datastream = Cosm::Datastream.new(:id => repository, :feed_id => FEED_ID)
-    datastream.datapoints = [Cosm::Datapoint.new(:at => Time.now, :value => status)]
-    feed.datastreams = [datastream]
-    Cosm::Client.put("/v2/feeds/#{FEED_ID}",
-                     :headers => {"X-ApiKey" => API_KEY},
-                       :body => feed.to_json)
-  end
+  datastream = Cosm::Datastream.new(:id => repository, :feed_id => FEED_ID)
+  datastream.datapoints = [Cosm::Datapoint.new(:at => Time.now, :value => status)]
+  feed.datastreams = [datastream]
+  Cosm::Client.put("/v2/feeds/#{FEED_ID}",
+                   :headers => {"X-ApiKey" => API_KEY},
+                   :body => feed.to_json)
 
   response = Cosm::Client.get("/v2/feeds/#{FEED_ID}", :headers => {"X-ApiKey" => API_KEY})
 
@@ -47,7 +46,13 @@ post '/notifications' do
     overall_status = "A"
   elsif response
     current_datastreams = JSON.parse(response.body)["datastreams"].delete_if{ |c| c["id"] == 'rag'}
-    overall_status = current_datastreams.all? {|c| c["current_value"] == "0"} ? "G" : "R"
+    if current_datastreams.all? {|c| c["current_value"] == "0"}
+      overall_status = "G"
+    elsif current_datastreams.any? {|c| c["current_value"] == "2"}
+      overall_status = "A"
+    else
+      overall_status = "R"
+    end
   end
 
   # Update Red, Amber, Green datastream for office traffic light
