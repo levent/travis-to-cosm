@@ -15,6 +15,7 @@ get '/' do
 end
 
 post '/notifications' do
+  logger = Logger.new
   content_type :json
 
   data = JSON.parse(URI.unescape(request.body.read).gsub('payload=', ''))
