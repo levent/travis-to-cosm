@@ -32,6 +32,7 @@ post '/notifications' do
   logger.debug "branch: #{data["branch"]}\n"
 
   return unless ["develop", "master"].include?(data["branch"])
+  return if data["type"] == "pull_request"
 
   feed = Cosm::Feed.new(:id => FEED_ID)
   overall_status = 'R'
