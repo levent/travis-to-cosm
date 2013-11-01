@@ -6,17 +6,14 @@ require 'logger'
 
 enable :logging
 
-before do
-  logger.level = Logger::DEBUG
-end
-
 get '/' do
   "Travis to Cosm"
 end
 
 post '/notifications' do
-  logger = Logger.new
   content_type :json
+  logger = Logger.new(STDOUT)
+  logger.level = Logger::DEBUG
 
   data = JSON.parse(URI.unescape(request.body.read).gsub('payload=', ''))
 
