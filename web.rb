@@ -6,6 +6,11 @@ require 'logger'
 
 enable :logging
 
+configure do
+  API_KEY = ENV["cosm_api_key"]
+  FEED_ID = ENV["cosm_feed_id"]
+end
+
 get '/' do
   "Travis to Cosm"
 end
@@ -16,9 +21,6 @@ post '/notifications' do
   logger.level = Logger::DEBUG
 
   data = JSON.parse(URI.unescape(request.body.read).gsub('payload=', ''))
-
-  API_KEY = ENV["cosm_api_key"]
-  FEED_ID = ENV["cosm_feed_id"]
 
   repository = data["repository"]["name"]
   status_message = data["status_message"].to_s.downcase
