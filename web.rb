@@ -2,8 +2,13 @@ require 'sinatra'
 require 'json'
 require 'cosm-rb'
 require 'uri'
+require 'logger'
 
 enable :logging
+
+before do
+  logger.level = Logger::DEBUG
+end
 
 get '/' do
   "Travis to Cosm"
@@ -23,7 +28,7 @@ post '/notifications' do
   # Travis treats pending (running) as 1. We want to differentiate from failed.
   status = status_message == 'pending' ? "2" : data["status"]
 
-  puts "branch: #{data["branch"]}\n"
+  logger.debug "branch: #{data["branch"]}\n"
 
   return unless ["develop", "master"].include?(data["branch"])
 
