@@ -28,6 +28,9 @@ post '/notifications' do
   # Travis treats pending (running) as 1. We want to differentiate from failed.
   status = status_message == 'pending' ? "2" : data["status"]
 
+  logger.debug "payload\n"
+  logger.debug data.inspect
+  logger.debug "===================================================="
   logger.debug "branch: #{data["branch"]}\n"
 
   return unless ["develop", "master"].include?(data["branch"])
