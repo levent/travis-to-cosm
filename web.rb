@@ -3,6 +3,7 @@ require 'json'
 require 'cosm-rb'
 require 'uri'
 require 'logger'
+require 'newrelic_rpm'
 
 enable :logging
 
