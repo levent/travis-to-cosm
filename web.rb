@@ -50,14 +50,18 @@ post '/notifications' do
   response = Cosm::Client.get("/v2/feeds/#{FEED_ID}", :headers => {"X-ApiKey" => API_KEY})
 
   if status_message == "pending"
+    logger.debug "overall status: A (pending)"
     overall_status = "A"
   elsif response
     current_datastreams = JSON.parse(response.body)["datastreams"].delete_if{ |c| c["id"] == 'rag'}
     if current_datastreams.all? {|c| c["current_value"] == "0"}
+      logger.debug "overall status: G (green)"
       overall_status = "G"
     elsif current_datastreams.any? {|c| c["current_value"] == "2"}
+      logger.debug "overall status: A (pending)"
       overall_status = "A"
     else
+      logger.debug "overall status: R (red)"
       overall_status = "R"
     end
   end
