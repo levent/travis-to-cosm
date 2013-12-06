@@ -29,15 +29,18 @@ post '/notifications' do
 
   # Travis treats pending (running) as 1. We want to differentiate from failed.
   status = status_message == 'pending' ? "2" : data["status"]
+  ignore_branch = !(["develop", "master"].include?(branch))
 
   logger.debug "payload\n"
   logger.debug data.inspect
   logger.debug "===================================================="
   logger.debug "repo: #{repository}"
   logger.debug "branch: #{branch}"
+  logger.debug "ignore branch: #{ignore_branch}"
+  logger.debug "build type: #{data['type']}"
   logger.debug "status_message: #{status_message}\n"
 
-  return unless ["develop", "master"].include?(branch)
+  return if ignore_branch
   return if data["type"] == "pull_request"
 
   feed = Xively::Feed.new(:id => FEED_ID)
