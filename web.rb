@@ -19,7 +19,7 @@ end
 post '/notifications' do
   content_type :json
   logger = Logger.new(STDOUT)
-  logger.level = Logger::DEBUG
+  logger.level = Logger::INFO
 
   data = JSON.parse(URI.unescape(request.body.read).gsub('payload=', ''))
 
@@ -31,11 +31,11 @@ post '/notifications' do
   status = status_message == 'pending' ? "2" : data["status"]
   ignore_branch = !(["develop", "master"].include?(branch))
 
-  logger.debug "repo: #{repository}"
-  logger.debug "branch: #{branch}"
-  logger.debug "ignore branch: #{ignore_branch}"
-  logger.debug "build type: #{data['type']}"
-  logger.debug "status_message: #{status_message}\n"
+  logger.info "repo: #{repository}"
+  logger.info "branch: #{branch}"
+  logger.info "ignore branch: #{ignore_branch}"
+  logger.info "build type: #{data['type']}"
+  logger.info "status_message: #{status_message}\n"
 
   return if ignore_branch
   return if data["type"] == "pull_request"
@@ -53,18 +53,18 @@ post '/notifications' do
   response = Xively::Client.get("/v2/feeds/#{FEED_ID}", :headers => {"X-ApiKey" => API_KEY})
 
   if status_message == "pending"
-    logger.debug "overall status: A (pending)"
+    logger.info "overall status: A (pending)"
     overall_status = "A"
   elsif response
     current_datastreams = JSON.parse(response.body)["datastreams"].delete_if{ |c| c["id"] == 'rag'}
     if current_datastreams.all? {|c| c["current_value"] == "0"}
-      logger.debug "overall status: G (green)"
+      logger.info "overall status: G (green)"
       overall_status = "G"
     elsif current_datastreams.any? {|c| c["current_value"] == "2"}
-      logger.debug "overall status: A (pending)"
+      logger.info "overall status: A (pending)"
       overall_status = "A"
     else
-      logger.debug "overall status: R (red)"
+      logger.info "overall status: R (red)"
       overall_status = "R"
     end
   end
