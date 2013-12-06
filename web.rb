@@ -31,9 +31,6 @@ post '/notifications' do
   status = status_message == 'pending' ? "2" : data["status"]
   ignore_branch = !(["develop", "master"].include?(branch))
 
-  logger.debug "payload\n"
-  logger.debug data.inspect
-  logger.debug "===================================================="
   logger.debug "repo: #{repository}"
   logger.debug "branch: #{branch}"
   logger.debug "ignore branch: #{ignore_branch}"
