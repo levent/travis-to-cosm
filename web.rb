@@ -24,6 +24,7 @@ post '/notifications' do
   data = JSON.parse(URI.unescape(request.body.read).gsub('payload=', ''))
 
   repository = data["repository"]["name"]
+  branch = data["branch"]
   status_message = data["status_message"].to_s.downcase
 
   # Travis treats pending (running) as 1. We want to differentiate from failed.
@@ -32,9 +33,11 @@ post '/notifications' do
   logger.debug "payload\n"
   logger.debug data.inspect
   logger.debug "===================================================="
-  logger.debug "branch: #{data["branch"]}\n"
+  logger.debug "repo: #{repository}\n"
+  logger.debug "branch: #{branch}\n"
+  logger.debug "status_message: #{status_message}\n"
 
-  return unless ["develop", "master"].include?(data["branch"])
+  return unless ["develop", "master"].include?(branch)
   return if data["type"] == "pull_request"
 
   feed = Cosm::Feed.new(:id => FEED_ID)
