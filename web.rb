@@ -1,6 +1,6 @@
 require 'sinatra'
 require 'json'
-require 'cosm-rb'
+require 'xively-rb'
 require 'uri'
 require 'logger'
 require 'newrelic_rpm'
@@ -33,24 +33,24 @@ post '/notifications' do
   logger.debug "payload\n"
   logger.debug data.inspect
   logger.debug "===================================================="
-  logger.debug "repo: #{repository}\n"
-  logger.debug "branch: #{branch}\n"
+  logger.debug "repo: #{repository}"
+  logger.debug "branch: #{branch}"
   logger.debug "status_message: #{status_message}\n"
 
   return unless ["develop", "master"].include?(branch)
   return if data["type"] == "pull_request"
 
-  feed = Cosm::Feed.new(:id => FEED_ID)
+  feed = Xively::Feed.new(:id => FEED_ID)
   overall_status = 'R'
 
-  datastream = Cosm::Datastream.new(:id => repository, :feed_id => FEED_ID)
-  datastream.datapoints = [Cosm::Datapoint.new(:at => Time.now, :value => status)]
+  datastream = Xively::Datastream.new(:id => repository, :feed_id => FEED_ID)
+  datastream.datapoints = [Xively::Datapoint.new(:at => Time.now, :value => status)]
   feed.datastreams = [datastream]
-  Cosm::Client.put("/v2/feeds/#{FEED_ID}",
+  Xively::Client.put("/v2/feeds/#{FEED_ID}",
                    :headers => {"X-ApiKey" => API_KEY},
                    :body => feed.to_json)
 
-  response = Cosm::Client.get("/v2/feeds/#{FEED_ID}", :headers => {"X-ApiKey" => API_KEY})
+  response = Xively::Client.get("/v2/feeds/#{FEED_ID}", :headers => {"X-ApiKey" => API_KEY})
 
   if status_message == "pending"
     logger.debug "overall status: A (pending)"
@@ -70,10 +70,10 @@ post '/notifications' do
   end
 
   # Update Red, Amber, Green datastream for office traffic light
-  datastream = Cosm::Datastream.new(:id => 'rag', :feed_id => FEED_ID)
-  datastream.datapoints = [Cosm::Datapoint.new(:at => Time.now, :value => overall_status)]
+  datastream = Xively::Datastream.new(:id => 'rag', :feed_id => FEED_ID)
+  datastream.datapoints = [Xively::Datapoint.new(:at => Time.now, :value => overall_status)]
   feed.datastreams = [datastream]
-  Cosm::Client.put("/v2/feeds/#{FEED_ID}",
+  Xively::Client.put("/v2/feeds/#{FEED_ID}",
                    :headers => {"X-ApiKey" => API_KEY},
                    :body => feed.to_json)
 end
