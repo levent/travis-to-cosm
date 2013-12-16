@@ -1,6 +1,6 @@
 require 'sinatra'
 require 'json'
-require 'cosm-rb'
+require 'xively-rb'
 require 'uri'
 require 'logger'
 require 'newrelic_rpm'
@@ -19,58 +19,61 @@ end
 post '/notifications' do
   content_type :json
   logger = Logger.new(STDOUT)
-  logger.level = Logger::DEBUG
+  logger.level = Logger::INFO
 
   data = JSON.parse(URI.unescape(request.body.read).gsub('payload=', ''))
 
   repository = data["repository"]["name"]
+  branch = data["branch"]
   status_message = data["status_message"].to_s.downcase
 
   # Travis treats pending (running) as 1. We want to differentiate from failed.
   status = status_message == 'pending' ? "2" : data["status"]
+  ignore_branch = !(["develop", "master"].include?(branch))
 
-  logger.debug "payload\n"
-  logger.debug data.inspect
-  logger.debug "===================================================="
-  logger.debug "branch: #{data["branch"]}\n"
+  logger.info "repo: #{repository}"
+  logger.info "branch: #{branch}"
+  logger.info "ignore branch: #{ignore_branch}"
+  logger.info "build type: #{data['type']}"
+  logger.info "status_message: #{status_message}\n"
 
-  return unless ["develop", "master"].include?(data["branch"])
+  return if ignore_branch
   return if data["type"] == "pull_request"
 
-  feed = Cosm::Feed.new(:id => FEED_ID)
+  feed = Xively::Feed.new(:id => FEED_ID)
   overall_status = 'R'
 
-  datastream = Cosm::Datastream.new(:id => repository, :feed_id => FEED_ID)
-  datastream.datapoints = [Cosm::Datapoint.new(:at => Time.now, :value => status)]
+  datastream = Xively::Datastream.new(:id => repository, :feed_id => FEED_ID)
+  datastream.datapoints = [Xively::Datapoint.new(:at => Time.now, :value => status)]
   feed.datastreams = [datastream]
-  Cosm::Client.put("/v2/feeds/#{FEED_ID}",
+  Xively::Client.put("/v2/feeds/#{FEED_ID}",
                    :headers => {"X-ApiKey" => API_KEY},
                    :body => feed.to_json)
 
-  response = Cosm::Client.get("/v2/feeds/#{FEED_ID}", :headers => {"X-ApiKey" => API_KEY})
+  response = Xively::Client.get("/v2/feeds/#{FEED_ID}", :headers => {"X-ApiKey" => API_KEY})
 
   if status_message == "pending"
-    logger.debug "overall status: A (pending)"
+    logger.info "overall status: A (pending)"
     overall_status = "A"
   elsif response
     current_datastreams = JSON.parse(response.body)["datastreams"].delete_if{ |c| c["id"] == 'rag'}
     if current_datastreams.all? {|c| c["current_value"] == "0"}
-      logger.debug "overall status: G (green)"
+      logger.info "overall status: G (green)"
       overall_status = "G"
     elsif current_datastreams.any? {|c| c["current_value"] == "2"}
-      logger.debug "overall status: A (pending)"
+      logger.info "overall status: A (pending)"
       overall_status = "A"
     else
-      logger.debug "overall status: R (red)"
+      logger.info "overall status: R (red)"
       overall_status = "R"
     end
   end
 
   # Update Red, Amber, Green datastream for office traffic light
-  datastream = Cosm::Datastream.new(:id => 'rag', :feed_id => FEED_ID)
-  datastream.datapoints = [Cosm::Datapoint.new(:at => Time.now, :value => overall_status)]
+  datastream = Xively::Datastream.new(:id => 'rag', :feed_id => FEED_ID)
+  datastream.datapoints = [Xively::Datapoint.new(:at => Time.now, :value => overall_status)]
   feed.datastreams = [datastream]
-  Cosm::Client.put("/v2/feeds/#{FEED_ID}",
+  Xively::Client.put("/v2/feeds/#{FEED_ID}",
                    :headers => {"X-ApiKey" => API_KEY},
                    :body => feed.to_json)
 end
