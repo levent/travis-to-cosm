@@ -16,6 +16,17 @@ get '/' do
   "Travis to Cosm"
 end
 
+get '/dashboard' do
+  response = Xively::Client.get("/v2/feeds/#{FEED_ID}", :headers => {"X-ApiKey" => params[:key]})
+  current_datastreams = JSON.parse(response.body)["datastreams"]
+  rag = (current_datastreams.select { |ds| ds["id"] == 'rag' }).first
+  failing = (current_datastreams.select { |ds| ds["current_value"] == '1' })
+  passing = (current_datastreams.select { |ds| ds["current_value"] == '0' })
+  output = "Overall status: #{rag['current_value']} | "
+  output += "Failing: "
+  output += failing.collect{|f| f['id']}.join(', ')
+end
+
 post '/notifications' do
   content_type :json
   logger = Logger.new(STDOUT)
