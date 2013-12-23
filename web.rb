@@ -27,6 +27,7 @@ get '/dashboard' do
     output += "Failing: "
     output += failing.collect{|f| f['id']}.join(', ')
   end
+  output
 end
 
 post '/notifications' do
