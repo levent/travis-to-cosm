@@ -23,8 +23,10 @@ get '/dashboard' do
   failing = (current_datastreams.select { |ds| ds["current_value"] == '1' })
   passing = (current_datastreams.select { |ds| ds["current_value"] == '0' })
   output = "Overall status: #{rag['current_value']} | "
-  output += "Failing: "
-  output += failing.collect{|f| f['id']}.join(', ')
+  if failing.any?
+    output += "Failing: "
+    output += failing.collect{|f| f['id']}.join(', ')
+  end
 end
 
 post '/notifications' do
